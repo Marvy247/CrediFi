@@ -1,9 +1,9 @@
 export const contracts = {
-  rwaAsset: '0x58452Acaf3B182F9251ad50DB2E58448eA3C77e2' as const,
-  fractionalRWA: '0x463a8065fEF29436bD6A62CE180913148dD09EBD' as const,
-  creditScoreOracle: '0xF075BE9ddcc27dbe6d3929A2616817A54deeB360' as const,
-  uscVerifier: '0x69f3a2Da35c9c71AFEb11B2Aee2D79b41Ccc2480' as const,
-  lendingPool: '0x67C8952C4A2c878caFa5145622CF716B76B2Bbce' as const,
+  rwaAsset: '0xa6D4dc7aDDb1365F735AFB83766B493C1de8AEd2' as const,
+  fractionalRWA: '0x4935E3E9f8fDaDfA416C44D2beBEd108c908A1a7' as const,
+  creditScoreOracle: '0xc4BEFe8D44c1F03e76a4e88b4833eb16710182F1' as const,
+  uscVerifier: '0x33cEfB0924eC37490a9e87408D5675c2baDDFCFC' as const,
+  lendingPool: '0x7259b1320182b90BfeDd882925937C76dAE241Ed' as const,
 } as const
 
 export const SEPOLIA_CHAIN_ID = 11155111
