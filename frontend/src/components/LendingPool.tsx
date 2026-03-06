@@ -5,6 +5,7 @@ import { parseEther, formatEther } from 'viem'
 import { contracts } from '../contracts/addresses'
 import LendingPoolABI from '../contracts/LendingPool.json'
 import RWAAssetABI from '../contracts/RWAAsset.json'
+import CreditScoreOracleABI from '../contracts/CreditScoreOracle.json'
 
 export function LendingPoolStats() {
   const { data: totalLiquidity, refetch: refetchLiquidity } = useReadContract({
@@ -241,6 +242,26 @@ export function BorrowRepay() {
   const { isLoading: isBorrowConfirming, isSuccess: isBorrowSuccess } = useWaitForTransactionReceipt({ hash: borrowHash })
   const { isLoading: isRepayConfirming, isSuccess: isRepaySuccess } = useWaitForTransactionReceipt({ hash: repayHash })
 
+  // Get asset metadata to show max borrow
+  const { data: assetMetadata } = useReadContract({
+    address: contracts.rwaAsset,
+    abi: RWAAssetABI,
+    functionName: 'getAssetMetadata',
+    args: collateralTokenId ? [BigInt(collateralTokenId)] : undefined,
+  }) as { data: any }
+
+  // Get credit score for LTV
+  const { data: creditScore } = useReadContract({
+    address: contracts.creditScoreOracle,
+    abi: CreditScoreOracleABI,
+    functionName: 'getCreditScore',
+    args: [address],
+  }) as { data: any }
+
+  const valuation = assetMetadata?.valuation || assetMetadata?.[2] || 0
+  const ltvRatio = creditScore?.ltvRatio !== undefined ? Number(creditScore.ltvRatio) : (creditScore?.[1] ? Number(creditScore[1]) : 50)
+  const maxBorrow = valuation ? (Number(valuation) * ltvRatio) / 100 / 1e18 : 0
+
   useEffect(() => {
     if (isApproveSuccess && collateralTokenId && borrowAmount) {
       borrow({
@@ -346,6 +367,11 @@ export function BorrowRepay() {
               className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400"
               required
             />
+            {collateralTokenId && maxBorrow > 0 && (
+              <div className="mt-2 text-sm text-gray-600">
+                Max borrow: <span className="font-semibold text-blue-600">{maxBorrow.toFixed(4)} ETH</span> ({ltvRatio}% LTV)
+              </div>
+            )}
           </div>
           <button
             type="submit"
