@@ -5,7 +5,6 @@ import { parseEther, formatEther } from 'viem'
 import { contracts } from '../contracts/addresses'
 import LendingPoolABI from '../contracts/LendingPool.json'
 import RWAAssetABI from '../contracts/RWAAsset.json'
-import CreditScoreOracleABI from '../contracts/CreditScoreOracle.json'
 
 export function LendingPoolStats() {
   const { data: totalLiquidity, refetch: refetchLiquidity } = useReadContract({
@@ -242,44 +241,6 @@ export function BorrowRepay() {
   const { isLoading: isBorrowConfirming, isSuccess: isBorrowSuccess } = useWaitForTransactionReceipt({ hash: borrowHash })
   const { isLoading: isRepayConfirming, isSuccess: isRepaySuccess } = useWaitForTransactionReceipt({ hash: repayHash })
 
-  // Check pool liquidity
-  const { data: totalLiquidity, refetch: refetchLiquidity } = useReadContract({
-    address: contracts.lendingPool,
-    abi: LendingPoolABI,
-    functionName: 'totalLiquidity',
-  }) as { data: any, refetch: any }
-
-  const { data: totalBorrowed, refetch: refetchBorrowed } = useReadContract({
-    address: contracts.lendingPool,
-    abi: LendingPoolABI,
-    functionName: 'totalBorrowed',
-  }) as { data: any, refetch: any }
-
-  const refetchPoolData = () => {
-    refetchLiquidity()
-    refetchBorrowed()
-  }
-
-  useEffect(() => {
-    const interval = setInterval(refetchPoolData, 3000)
-    return () => clearInterval(interval)
-  }, [])
-
-  // Check asset metadata and credit score for validation
-  const { data: assetMetadata } = useReadContract({
-    address: contracts.rwaAsset,
-    abi: RWAAssetABI,
-    functionName: 'getAssetMetadata',
-    args: collateralTokenId ? [BigInt(collateralTokenId)] : undefined,
-  }) as { data: any }
-
-  const { data: creditScore } = useReadContract({
-    address: contracts.creditScoreOracle,
-    abi: CreditScoreOracleABI,
-    functionName: 'getCreditScore',
-    args: [address],
-  }) as { data: any }
-
   useEffect(() => {
     if (isApproveSuccess && collateralTokenId && borrowAmount) {
       borrow({
@@ -318,35 +279,6 @@ export function BorrowRepay() {
     if (!collateralTokenId || !borrowAmount) {
       toast.error('Please fill in all fields')
       return
-    }
-
-    const requestedBorrow = parseFloat(borrowAmount) * 1e18
-
-    // Check pool liquidity
-    const availableLiquidity = totalLiquidity && totalBorrowed ? Number(totalLiquidity) - Number(totalBorrowed) : 0
-    if (requestedBorrow > availableLiquidity) {
-      toast.error(`Insufficient pool liquidity. Available: ${(availableLiquidity / 1e18).toFixed(4)} ETH`)
-      return
-    }
-
-    // Check asset metadata
-    if (assetMetadata) {
-      const valuation = assetMetadata.valuation || assetMetadata[2] || 0
-      const status = assetMetadata.verificationStatus !== undefined ? Number(assetMetadata.verificationStatus) : (assetMetadata[4] !== undefined ? Number(assetMetadata[4]) : 0)
-      
-      if (status !== 1) {
-        toast.error('Asset must be verified to use as collateral')
-        return
-      }
-
-      // Check LTV
-      const ltvRatio = creditScore?.ltvRatio !== undefined ? Number(creditScore.ltvRatio) : (creditScore?.[1] ? Number(creditScore[1]) : 50)
-      const maxBorrow = (Number(valuation) * ltvRatio) / 100
-
-      if (requestedBorrow > maxBorrow) {
-        toast.error(`Max borrow: ${(maxBorrow / 1e18).toFixed(4)} ETH (${ltvRatio}% LTV of ${(Number(valuation) / 1e18).toFixed(2)} ETH valuation)`)
-        return
-      }
     }
 
     try {
