@@ -242,6 +242,53 @@ export function BorrowRepay() {
   const { isLoading: isBorrowConfirming, isSuccess: isBorrowSuccess } = useWaitForTransactionReceipt({ hash: borrowHash })
   const { isLoading: isRepayConfirming, isSuccess: isRepaySuccess } = useWaitForTransactionReceipt({ hash: repayHash })
 
+  // Get user's assets for dropdown
+  const [userAssets, setUserAssets] = useState<number[]>([])
+  
+  useEffect(() => {
+    const fetchAssets = async () => {
+      if (!address) return
+      const assets: number[] = []
+      for (let i = 0; i < 20; i++) {
+        try {
+          const response = await fetch('https://ethereum-sepolia-rpc.publicnode.com', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              jsonrpc: '2.0',
+              method: 'eth_call',
+              params: [{
+                to: contracts.rwaAsset,
+                data: `0x6352211e${i.toString(16).padStart(64, '0')}`
+              }, 'latest'],
+              id: 1
+            })
+          })
+          const data = await response.json()
+          if (data.result && data.result !== '0x') {
+            const owner = '0x' + data.result.slice(-40)
+            if (owner.toLowerCase() === address.toLowerCase()) {
+              assets.push(i)
+            }
+          }
+        } catch (e) {}
+      }
+      setUserAssets(assets)
+    }
+    fetchAssets()
+  }, [address])
+
+  useEffect(() => {
+    if (isApproveSuccess && collateralTokenId && borrowAmount) {
+      borrow({
+        address: contracts.lendingPool,
+        abi: LendingPoolABI,
+        functionName: 'borrow',
+        args: [BigInt(collateralTokenId), parseEther(borrowAmount)],
+      })
+    }
+  }, [isApproveSuccess])
+
   // Get asset metadata to show max borrow
   const { data: assetMetadata } = useReadContract({
     address: contracts.rwaAsset,
@@ -258,20 +305,37 @@ export function BorrowRepay() {
     args: [address],
   }) as { data: any }
 
+  // Get loan details for repayment
+  const { data: loanData } = useReadContract({
+    address: contracts.lendingPool,
+    abi: LendingPoolABI,
+    functionName: 'loans',
+    args: loanId ? [BigInt(loanId)] : undefined,
+  }) as { data: any }
+
   const valuation = assetMetadata?.valuation || assetMetadata?.[2] || 0
   const ltvRatio = creditScore?.ltvRatio !== undefined ? Number(creditScore.ltvRatio) : (creditScore?.[1] ? Number(creditScore[1]) : 50)
   const maxBorrow = valuation ? (Number(valuation) * ltvRatio) / 100 / 1e18 : 0
 
+  const borrowedAmount = loanData?.borrowedAmount || loanData?.[2] || 0
+  const accruedInterest = loanData?.accruedInterest || loanData?.[6] || 0
+  const totalRepayment = borrowedAmount && accruedInterest ? (Number(borrowedAmount) + Number(accruedInterest)) / 1e18 : 0
+
   useEffect(() => {
-    if (isApproveSuccess && collateralTokenId && borrowAmount) {
-      borrow({
-        address: contracts.lendingPool,
-        abi: LendingPoolABI,
-        functionName: 'borrow',
-        args: [BigInt(collateralTokenId), parseEther(borrowAmount)],
-      })
+    if (isBorrowSuccess) {
+      toast.success('Borrow successful! Credit history updated.')
+      setCollateralTokenId('')
+      setBorrowAmount('')
     }
-  }, [isApproveSuccess])
+  }, [isBorrowSuccess])
+
+  useEffect(() => {
+    if (isRepaySuccess) {
+      toast.success('Repay successful! Credit score updated.')
+      setLoanId('')
+      setRepayAmount('')
+    }
+  }, [isRepaySuccess])
 
   useEffect(() => {
     if (isBorrowSuccess) {
@@ -346,15 +410,20 @@ export function BorrowRepay() {
         <form onSubmit={handleBorrow} className="space-y-4">
           <h3 className="text-lg font-semibold text-gray-900">Borrow</h3>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Collateral Token ID</label>
-            <input
-              type="number"
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Collateral Asset</label>
+            <select
               value={collateralTokenId}
               onChange={(e) => setCollateralTokenId(e.target.value)}
-              placeholder="0"
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900"
               required
-            />
+            >
+              <option value="">Select an asset</option>
+              {userAssets.map(tokenId => (
+                <option key={tokenId} value={tokenId}>
+                  Token #{tokenId} - {valuation && collateralTokenId === tokenId.toString() ? `${(Number(valuation) / 1e18).toFixed(2)} ETH` : 'Loading...'}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Borrow Amount (ETH)</label>
@@ -407,6 +476,11 @@ export function BorrowRepay() {
                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400"
                 required
               />
+              {loanId && totalRepayment > 0 && (
+                <div className="mt-2 text-sm text-gray-600">
+                  Total to repay: <span className="font-semibold text-orange-600">{totalRepayment.toFixed(6)} ETH</span> (principal + interest)
+                </div>
+              )}
             </div>
             <button
               type="submit"
