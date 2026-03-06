@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast'
 import { parseEther, formatEther } from 'viem'
 import { contracts } from '../contracts/addresses'
 import LendingPoolABI from '../contracts/LendingPool.json'
+import RWAAssetABI from '../contracts/RWAAsset.json'
 
 export function LendingPoolStats() {
   const { data: totalLiquidity, refetch: refetchLiquidity } = useReadContract({
@@ -233,10 +234,23 @@ export function BorrowRepay() {
   const [loanId, setLoanId] = useState('')
   const [repayAmount, setRepayAmount] = useState('')
 
+  const { writeContract: approve, data: approveHash } = useWriteContract()
   const { writeContract: borrow, data: borrowHash, isPending: isBorrowPending } = useWriteContract()
   const { writeContract: repay, data: repayHash, isPending: isRepayPending } = useWriteContract()
+  const { isSuccess: isApproveSuccess } = useWaitForTransactionReceipt({ hash: approveHash })
   const { isLoading: isBorrowConfirming, isSuccess: isBorrowSuccess } = useWaitForTransactionReceipt({ hash: borrowHash })
   const { isLoading: isRepayConfirming, isSuccess: isRepaySuccess } = useWaitForTransactionReceipt({ hash: repayHash })
+
+  useEffect(() => {
+    if (isApproveSuccess && collateralTokenId && borrowAmount) {
+      borrow({
+        address: contracts.lendingPool,
+        abi: LendingPoolABI,
+        functionName: 'borrow',
+        args: [BigInt(collateralTokenId), parseEther(borrowAmount)],
+      })
+    }
+  }, [isApproveSuccess])
 
   useEffect(() => {
     if (isBorrowSuccess) {
@@ -262,15 +276,15 @@ export function BorrowRepay() {
     }
 
     try {
-      borrow({
-        address: contracts.lendingPool,
-        abi: LendingPoolABI,
-        functionName: 'borrow',
-        args: [BigInt(collateralTokenId), parseEther(borrowAmount)],
+      approve({
+        address: contracts.rwaAsset,
+        abi: RWAAssetABI,
+        functionName: 'approve',
+        args: [contracts.lendingPool, BigInt(collateralTokenId)],
       })
-      toast.success('Borrow transaction submitted!')
+      toast.success('Approving NFT transfer...')
     } catch (error) {
-      toast.error('Borrow failed')
+      toast.error('Approval failed')
       console.error(error)
     }
   }
