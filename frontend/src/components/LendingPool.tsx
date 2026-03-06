@@ -426,15 +426,26 @@ export function BorrowRepay() {
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Repay Amount (ETH)</label>
-              <input
-                type="number"
-                step="0.01"
-                value={repayAmount}
-                onChange={(e) => setRepayAmount(e.target.value)}
-                placeholder="6.0"
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400"
-                required
-              />
+              <div className="relative">
+                <input
+                  type="number"
+                  step="0.000001"
+                  value={repayAmount}
+                  onChange={(e) => setRepayAmount(e.target.value)}
+                  placeholder="6.0"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400"
+                  required
+                />
+                {loanId && totalRepayment > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setRepayAmount(totalRepayment.toString())}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-700 transition-all"
+                  >
+                    MAX
+                  </button>
+                )}
+              </div>
               {loanId && totalRepayment > 0 && (
                 <div className="mt-2 text-sm text-gray-600">
                   Total to repay: <span className="font-semibold text-orange-600">{totalRepayment.toFixed(6)} ETH</span> (principal + interest)
