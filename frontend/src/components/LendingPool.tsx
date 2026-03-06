@@ -35,30 +35,30 @@ export function LendingPoolStats() {
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Pool Statistics</h2>
       
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+        <div className="p-6 bg-blue-50 rounded-xl border border-blue-200">
           <div className="text-gray-600 text-sm font-medium mb-1">Total Liquidity</div>
           <div className="text-3xl font-bold text-blue-700">
             {totalLiquidity ? formatEther(totalLiquidity) : '0'} ETH
           </div>
         </div>
 
-        <div className="p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200">
+        <div className="p-6 bg-green-50 rounded-xl border border-green-200">
           <div className="text-gray-600 text-sm font-medium mb-1">Total Borrowed</div>
-          <div className="text-3xl font-bold text-purple-700">
+          <div className="text-3xl font-bold text-green-700">
             {totalBorrowed ? formatEther(totalBorrowed) : '0'} ETH
           </div>
         </div>
 
-        <div className="p-6 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border border-orange-200">
+        <div className="p-6 bg-orange-50 rounded-xl border border-orange-200">
           <div className="text-gray-600 text-sm font-medium mb-1">Utilization Rate</div>
           <div className="text-3xl font-bold text-orange-700">
             {utilizationRate ? Number(utilizationRate) : 0}%
           </div>
         </div>
 
-        <div className="p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200">
+        <div className="p-6 bg-teal-50 rounded-xl border border-teal-200">
           <div className="text-gray-600 text-sm font-medium mb-1">APY</div>
-          <div className="text-3xl font-bold text-green-700">
+          <div className="text-3xl font-bold text-teal-700">
             {apy ? (Number(apy) / 10).toFixed(1) : 0}%
           </div>
         </div>
@@ -131,7 +131,7 @@ export function DepositWithdraw() {
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Liquidity Provider</h2>
 
       {providerData && (
-        <div className="mb-6 p-6 bg-gradient-to-r from-green-50 to-green-100 rounded-xl border border-green-200">
+        <div className="mb-6 p-6 bg-green-50 rounded-xl border border-green-200">
           <div className="text-gray-600 text-sm font-medium mb-1">Your Deposited Amount</div>
           <div className="text-3xl font-bold text-green-700">
             {formatEther(providerData[0])} ETH
@@ -156,7 +156,7 @@ export function DepositWithdraw() {
           <button
             type="submit"
             disabled={isDepositPending || isDepositConfirming}
-            className="w-full px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+            className="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
           >
             {isDepositPending || isDepositConfirming ? 'Depositing...' : 'Deposit'}
           </button>
@@ -278,7 +278,7 @@ export function BorrowRepay() {
           <button
             type="submit"
             disabled={isBorrowPending || isBorrowConfirming}
-            className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+            className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
           >
             {isBorrowPending || isBorrowConfirming ? 'Borrowing...' : 'Borrow'}
           </button>
@@ -294,7 +294,7 @@ export function BorrowRepay() {
                 value={loanId}
                 onChange={(e) => setLoanId(e.target.value)}
                 placeholder="0"
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400"
                 required
               />
             </div>
@@ -306,14 +306,14 @@ export function BorrowRepay() {
                 value={repayAmount}
                 onChange={(e) => setRepayAmount(e.target.value)}
                 placeholder="6.0"
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400"
                 required
               />
             </div>
             <button
               type="submit"
               disabled={isRepayPending || isRepayConfirming}
-              className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+              className="w-full px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
             >
               {isRepayPending || isRepayConfirming ? 'Repaying...' : 'Repay Loan'}
             </button>
