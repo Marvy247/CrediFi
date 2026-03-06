@@ -31,34 +31,34 @@ export function LendingPoolStats() {
   }) as { data: any }
 
   return (
-    <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-      <h2 className="text-2xl font-bold mb-6">Pool Statistics</h2>
+    <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">Pool Statistics</h2>
       
-      <div className="grid md:grid-cols-2 gap-4">
-        <div className="p-4 bg-gray-900 rounded-lg">
-          <div className="text-gray-400 text-sm">Total Liquidity</div>
-          <div className="text-2xl font-bold mt-1">
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+          <div className="text-gray-600 text-sm font-medium mb-1">Total Liquidity</div>
+          <div className="text-3xl font-bold text-blue-700">
             {totalLiquidity ? formatEther(totalLiquidity) : '0'} ETH
           </div>
         </div>
 
-        <div className="p-4 bg-gray-900 rounded-lg">
-          <div className="text-gray-400 text-sm">Total Borrowed</div>
-          <div className="text-2xl font-bold mt-1">
+        <div className="p-6 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200">
+          <div className="text-gray-600 text-sm font-medium mb-1">Total Borrowed</div>
+          <div className="text-3xl font-bold text-purple-700">
             {totalBorrowed ? formatEther(totalBorrowed) : '0'} ETH
           </div>
         </div>
 
-        <div className="p-4 bg-gray-900 rounded-lg">
-          <div className="text-gray-400 text-sm">Utilization Rate</div>
-          <div className="text-2xl font-bold mt-1 text-blue-500">
+        <div className="p-6 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border border-orange-200">
+          <div className="text-gray-600 text-sm font-medium mb-1">Utilization Rate</div>
+          <div className="text-3xl font-bold text-orange-700">
             {utilizationRate ? Number(utilizationRate) : 0}%
           </div>
         </div>
 
-        <div className="p-4 bg-gray-900 rounded-lg">
-          <div className="text-gray-400 text-sm">APY</div>
-          <div className="text-2xl font-bold mt-1 text-green-500">
+        <div className="p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200">
+          <div className="text-gray-600 text-sm font-medium mb-1">APY</div>
+          <div className="text-3xl font-bold text-green-700">
             {apy ? (Number(apy) / 10).toFixed(1) : 0}%
           </div>
         </div>
@@ -127,13 +127,13 @@ export function DepositWithdraw() {
   }
 
   return (
-    <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-      <h2 className="text-2xl font-bold mb-4">Liquidity Provider</h2>
+    <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">Liquidity Provider</h2>
 
       {providerData && (
-        <div className="mb-6 p-4 bg-gray-900 rounded-lg">
-          <div className="text-gray-400 text-sm">Your Deposited Amount</div>
-          <div className="text-2xl font-bold mt-1">
+        <div className="mb-6 p-6 bg-gradient-to-r from-green-50 to-green-100 rounded-xl border border-green-200">
+          <div className="text-gray-600 text-sm font-medium mb-1">Your Deposited Amount</div>
+          <div className="text-3xl font-bold text-green-700">
             {formatEther(providerData[0])} ETH
           </div>
         </div>
@@ -142,47 +142,49 @@ export function DepositWithdraw() {
       <div className="space-y-6">
         <form onSubmit={handleDeposit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Deposit Amount (ETH)</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Deposit Amount (ETH)</label>
             <input
               type="number"
               step="0.01"
               value={depositAmount}
               onChange={(e) => setDepositAmount(e.target.value)}
               placeholder="1.0"
-              className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400"
               required
             />
           </div>
           <button
             type="submit"
             disabled={isDepositPending || isDepositConfirming}
-            className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:opacity-50"
+            className="w-full px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
           >
             {isDepositPending || isDepositConfirming ? 'Depositing...' : 'Deposit'}
           </button>
         </form>
 
-        <form onSubmit={handleWithdraw} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Withdraw Amount (ETH)</label>
-            <input
-              type="number"
-              step="0.01"
-              value={withdrawAmount}
-              onChange={(e) => setWithdrawAmount(e.target.value)}
-              placeholder="1.0"
-              className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={isWithdrawPending || isWithdrawConfirming}
-            className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50"
-          >
-            {isWithdrawPending || isWithdrawConfirming ? 'Withdrawing...' : 'Withdraw'}
-          </button>
-        </form>
+        <div className="border-t border-gray-200 pt-6">
+          <form onSubmit={handleWithdraw} className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Withdraw Amount (ETH)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={withdrawAmount}
+                onChange={(e) => setWithdrawAmount(e.target.value)}
+                placeholder="1.0"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={isWithdrawPending || isWithdrawConfirming}
+              className="w-full px-6 py-3 bg-red-50 text-red-600 border-2 border-red-200 rounded-lg hover:bg-red-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+            >
+              {isWithdrawPending || isWithdrawConfirming ? 'Withdrawing...' : 'Withdraw'}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   )
@@ -244,74 +246,74 @@ export function BorrowRepay() {
   }
 
   return (
-    <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-      <h2 className="text-2xl font-bold mb-4">Borrow & Repay</h2>
+    <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">Borrow & Repay</h2>
 
       <div className="space-y-6">
         <form onSubmit={handleBorrow} className="space-y-4">
-          <h3 className="text-lg font-semibold">Borrow</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Borrow</h3>
           <div>
-            <label className="block text-sm font-medium mb-2">Collateral Token ID</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Collateral Token ID</label>
             <input
               type="number"
               value={collateralTokenId}
               onChange={(e) => setCollateralTokenId(e.target.value)}
               placeholder="0"
-              className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">Borrow Amount (ETH)</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Borrow Amount (ETH)</label>
             <input
               type="number"
               step="0.01"
               value={borrowAmount}
               onChange={(e) => setBorrowAmount(e.target.value)}
               placeholder="5.0"
-              className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400"
               required
             />
           </div>
           <button
             type="submit"
             disabled={isBorrowPending || isBorrowConfirming}
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+            className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
           >
             {isBorrowPending || isBorrowConfirming ? 'Borrowing...' : 'Borrow'}
           </button>
         </form>
 
-        <div className="border-t border-gray-700 pt-6">
+        <div className="border-t border-gray-200 pt-6">
           <form onSubmit={handleRepay} className="space-y-4">
-            <h3 className="text-lg font-semibold">Repay</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Repay</h3>
             <div>
-              <label className="block text-sm font-medium mb-2">Loan ID</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Loan ID</label>
               <input
                 type="number"
                 value={loanId}
                 onChange={(e) => setLoanId(e.target.value)}
                 placeholder="0"
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Repay Amount (ETH)</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Repay Amount (ETH)</label>
               <input
                 type="number"
                 step="0.01"
                 value={repayAmount}
                 onChange={(e) => setRepayAmount(e.target.value)}
                 placeholder="6.0"
-                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-gray-900 placeholder-gray-400"
                 required
               />
             </div>
             <button
               type="submit"
               disabled={isRepayPending || isRepayConfirming}
-              className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition disabled:opacity-50"
+              className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
             >
               {isRepayPending || isRepayConfirming ? 'Repaying...' : 'Repay Loan'}
             </button>
