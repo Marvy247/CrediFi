@@ -117,6 +117,9 @@ export function DepositWithdraw() {
     }
   }, [isWithdrawSuccess])
 
+  // Handle both struct and array formats
+  const depositedAmount = providerData?.depositedAmount || providerData?.[0] || BigInt(0)
+
   const handleDeposit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!address) {
@@ -167,7 +170,7 @@ export function DepositWithdraw() {
         <div className="mb-6 p-6 bg-green-50 rounded-xl border border-green-200">
           <div className="text-gray-600 text-sm font-medium mb-1">Your Deposited Amount</div>
           <div className="text-3xl font-bold text-green-700">
-            {formatEther(providerData[0])} ETH
+            {formatEther(depositedAmount)} ETH
           </div>
         </div>
       )}
