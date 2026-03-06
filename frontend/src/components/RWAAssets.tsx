@@ -208,12 +208,31 @@ export function MyAssets() {
 }
 
 function AssetCard({ tokenId }: { tokenId: number }) {
-  const { data: metadata, isLoading } = useReadContract({
+  const { data: metadata, isLoading, refetch } = useReadContract({
     address: contracts.rwaAsset,
     abi: RWAAssetABI,
     functionName: 'getAssetMetadata',
     args: [BigInt(tokenId)],
-  }) as { data: any, isLoading: boolean }
+  }) as { data: any, isLoading: boolean, refetch: any }
+
+  const { writeContract: verifyAsset, data: verifyHash } = useWriteContract()
+  const { isSuccess: isVerifySuccess } = useWaitForTransactionReceipt({ hash: verifyHash })
+
+  useEffect(() => {
+    if (isVerifySuccess) {
+      toast.success('Asset verified!')
+      refetch()
+    }
+  }, [isVerifySuccess])
+
+  const handleVerify = () => {
+    verifyAsset({
+      address: contracts.rwaAsset,
+      abi: RWAAssetABI,
+      functionName: 'verifyAsset',
+      args: [BigInt(tokenId), 1], // 1 = Verified
+    })
+  }
 
   const assetTypes = ['🏠 Land', '🌾 Crop', '🚗 Vehicle', '📦 Other']
   const verificationStatus = ['Pending', 'Verified', 'Rejected']
@@ -243,9 +262,19 @@ function AssetCard({ tokenId }: { tokenId: number }) {
           <div className="text-2xl mb-1">{assetTypes[assetType]}</div>
           <div className="text-xs text-gray-500 font-mono">Token ID: #{tokenId}</div>
         </div>
-        <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${statusColors[status]}`}>
-          {verificationStatus[status]}
-        </span>
+        <div className="flex flex-col items-end gap-2">
+          <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${statusColors[status]}`}>
+            {verificationStatus[status]}
+          </span>
+          {status === 0 && (
+            <button
+              onClick={handleVerify}
+              className="px-3 py-1 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-all"
+            >
+              Verify
+            </button>
+          )}
+        </div>
       </div>
       
       <div className="space-y-3">

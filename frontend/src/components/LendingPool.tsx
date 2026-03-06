@@ -284,7 +284,7 @@ export function BorrowRepay() {
       })
       toast.success('Approving NFT transfer...')
     } catch (error) {
-      toast.error('Approval failed')
+      toast.error('Approval failed. Make sure asset is verified!')
       console.error(error)
     }
   }
