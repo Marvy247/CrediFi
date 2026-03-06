@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { toast } from 'react-hot-toast'
 import { parseEther, formatEther } from 'viem'
@@ -6,33 +6,50 @@ import { contracts } from '../contracts/addresses'
 import LendingPoolABI from '../contracts/LendingPool.json'
 
 export function LendingPoolStats() {
-  const { data: totalLiquidity } = useReadContract({
+  const { data: totalLiquidity, refetch: refetchLiquidity } = useReadContract({
     address: contracts.lendingPool,
     abi: LendingPoolABI,
     functionName: 'totalLiquidity',
-  }) as { data: any }
+  }) as { data: any, refetch: any }
 
-  const { data: totalBorrowed } = useReadContract({
+  const { data: totalBorrowed, refetch: refetchBorrowed } = useReadContract({
     address: contracts.lendingPool,
     abi: LendingPoolABI,
     functionName: 'totalBorrowed',
-  }) as { data: any }
+  }) as { data: any, refetch: any }
 
-  const { data: utilizationRate } = useReadContract({
+  const { data: utilizationRate, refetch: refetchUtilization } = useReadContract({
     address: contracts.lendingPool,
     abi: LendingPoolABI,
     functionName: 'getUtilizationRate',
-  }) as { data: any }
+  }) as { data: any, refetch: any }
 
-  const { data: apy } = useReadContract({
+  const { data: apy, refetch: refetchApy } = useReadContract({
     address: contracts.lendingPool,
     abi: LendingPoolABI,
     functionName: 'getAPY',
-  }) as { data: any }
+  }) as { data: any, refetch: any }
+
+  const refetchAll = () => {
+    refetchLiquidity()
+    refetchBorrowed()
+    refetchUtilization()
+    refetchApy()
+  }
+
+  useEffect(() => {
+    const interval = setInterval(refetchAll, 5000)
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Pool Statistics</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">Pool Statistics</h2>
+        <button onClick={refetchAll} className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+          Refresh
+        </button>
+      </div>
       
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-6 bg-blue-50 rounded-xl border border-blue-200">
@@ -74,15 +91,31 @@ export function DepositWithdraw() {
 
   const { writeContract: deposit, data: depositHash, isPending: isDepositPending } = useWriteContract()
   const { writeContract: withdraw, data: withdrawHash, isPending: isWithdrawPending } = useWriteContract()
-  const { isLoading: isDepositConfirming } = useWaitForTransactionReceipt({ hash: depositHash })
-  const { isLoading: isWithdrawConfirming } = useWaitForTransactionReceipt({ hash: withdrawHash })
+  const { isLoading: isDepositConfirming, isSuccess: isDepositSuccess } = useWaitForTransactionReceipt({ hash: depositHash })
+  const { isLoading: isWithdrawConfirming, isSuccess: isWithdrawSuccess } = useWaitForTransactionReceipt({ hash: withdrawHash })
 
-  const { data: providerData } = useReadContract({
+  const { data: providerData, refetch } = useReadContract({
     address: contracts.lendingPool,
     abi: LendingPoolABI,
     functionName: 'liquidityProviders',
     args: [address],
-  }) as { data: any }
+  }) as { data: any, refetch: any }
+
+  useEffect(() => {
+    if (isDepositSuccess) {
+      toast.success('Deposit successful!')
+      setDepositAmount('')
+      refetch()
+    }
+  }, [isDepositSuccess])
+
+  useEffect(() => {
+    if (isWithdrawSuccess) {
+      toast.success('Withdrawal successful!')
+      setWithdrawAmount('')
+      refetch()
+    }
+  }, [isWithdrawSuccess])
 
   const handleDeposit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -199,8 +232,24 @@ export function BorrowRepay() {
 
   const { writeContract: borrow, data: borrowHash, isPending: isBorrowPending } = useWriteContract()
   const { writeContract: repay, data: repayHash, isPending: isRepayPending } = useWriteContract()
-  const { isLoading: isBorrowConfirming } = useWaitForTransactionReceipt({ hash: borrowHash })
-  const { isLoading: isRepayConfirming } = useWaitForTransactionReceipt({ hash: repayHash })
+  const { isLoading: isBorrowConfirming, isSuccess: isBorrowSuccess } = useWaitForTransactionReceipt({ hash: borrowHash })
+  const { isLoading: isRepayConfirming, isSuccess: isRepaySuccess } = useWaitForTransactionReceipt({ hash: repayHash })
+
+  useEffect(() => {
+    if (isBorrowSuccess) {
+      toast.success('Borrow successful!')
+      setCollateralTokenId('')
+      setBorrowAmount('')
+    }
+  }, [isBorrowSuccess])
+
+  useEffect(() => {
+    if (isRepaySuccess) {
+      toast.success('Repayment successful!')
+      setLoanId('')
+      setRepayAmount('')
+    }
+  }, [isRepaySuccess])
 
   const handleBorrow = async (e: React.FormEvent) => {
     e.preventDefault()

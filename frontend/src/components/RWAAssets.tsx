@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAccount, useWriteContract, useReadContract, useWaitForTransactionReceipt } from 'wagmi'
 import { toast } from 'react-hot-toast'
 import { contracts } from '../contracts/addresses'
@@ -12,7 +12,17 @@ export function MintAsset() {
   const [documentHash, setDocumentHash] = useState('')
 
   const { writeContract, data: hash, isPending } = useWriteContract()
-  const { isLoading: isConfirming } = useWaitForTransactionReceipt({ hash })
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
+
+  useEffect(() => {
+    if (isSuccess) {
+      toast.success('Asset minted successfully!')
+      setAssetType('0')
+      setLocation('')
+      setValuation('')
+      setDocumentHash('')
+    }
+  }, [isSuccess])
 
   const handleMint = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -105,12 +115,12 @@ export function MintAsset() {
 export function MyAssets() {
   const [tokenId, setTokenId] = useState('0')
 
-  const { data: metadata } = useReadContract({
+  const { data: metadata, refetch } = useReadContract({
     address: contracts.rwaAsset,
     abi: RWAAssetABI,
     functionName: 'getAssetMetadata',
     args: [BigInt(tokenId)],
-  }) as { data: any }
+  }) as { data: any, refetch: any }
 
   const assetTypes = ['🏠 Land', '🌾 Crop', '🚗 Vehicle', '📦 Other']
   const verificationStatus = ['Pending', 'Verified', 'Rejected']
@@ -119,14 +129,20 @@ export function MyAssets() {
     <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">My Assets</h2>
       
-      <div className="mb-6">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Token ID</label>
+      <div className="mb-6 flex gap-2">
         <input
           type="number"
           value={tokenId}
           onChange={(e) => setTokenId(e.target.value)}
-          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900"
+          className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900"
+          placeholder="Enter Token ID"
         />
+        <button
+          onClick={() => refetch()}
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold"
+        >
+          View
+        </button>
       </div>
 
       {metadata && (
