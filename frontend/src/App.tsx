@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { WalletConnect } from './components/WalletConnect'
 import { MintAsset, MyAssets } from './components/RWAAssets'
+import { CreditScoreDashboard } from './components/CreditScore'
 
 function App() {
   return (
@@ -90,7 +91,7 @@ function AssetsPage() {
 }
 
 function CreditPage() {
-  return <div className="text-center py-12">Credit Score page coming soon...</div>
+  return <CreditScoreDashboard />
 }
 
 function LendingPage() {
