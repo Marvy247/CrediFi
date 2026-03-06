@@ -259,20 +259,17 @@ export function BorrowRepay() {
   }) as { data: any }
 
   // Get loan details for repayment
-  const { data: loanData } = useReadContract({
+  const { data: totalOwed } = useReadContract({
     address: contracts.lendingPool,
     abi: LendingPoolABI,
-    functionName: 'loans',
+    functionName: 'getRepaymentAmount',
     args: loanId ? [BigInt(loanId)] : undefined,
   }) as { data: any }
 
   const valuation = assetMetadata?.valuation || assetMetadata?.[2] || 0
   const ltvRatio = creditScore?.ltvRatio !== undefined ? Number(creditScore.ltvRatio) : (creditScore?.[1] ? Number(creditScore[1]) : 50)
   const maxBorrow = valuation ? (Number(valuation) * ltvRatio) / 100 / 1e18 : 0
-
-  const borrowedAmount = loanData?.borrowedAmount || loanData?.[2] || 0
-  const accruedInterest = loanData?.accruedInterest !== undefined ? loanData.accruedInterest : (loanData?.[6] !== undefined ? loanData[6] : 0)
-  const totalRepayment = borrowedAmount ? (Number(borrowedAmount) + Number(accruedInterest)) / 1e18 : 0
+  const totalRepayment = totalOwed ? Number(totalOwed) / 1e18 : 0
 
   useEffect(() => {
     if (isApproveSuccess && collateralTokenId && borrowAmount) {
