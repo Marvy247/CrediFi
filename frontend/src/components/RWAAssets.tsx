@@ -229,11 +229,12 @@ function AssetCard({ tokenId }: { tokenId: number }) {
     )
   }
 
-  const assetType = metadata[0] !== undefined ? Number(metadata[0]) : 0
-  const location = metadata[1] || 'Unknown'
-  const valuation = metadata[2] ? Number(metadata[2]) : 0
-  const documentHash = metadata[3] || 'N/A'
-  const status = metadata[4] !== undefined ? Number(metadata[4]) : 0
+  // Handle both struct (object) and array formats
+  const assetType = metadata.assetType !== undefined ? Number(metadata.assetType) : (metadata[0] !== undefined ? Number(metadata[0]) : 0)
+  const location = metadata.location || metadata[1] || 'Unknown'
+  const valuation = metadata.valuation ? Number(metadata.valuation) : (metadata[2] ? Number(metadata[2]) : 0)
+  const documentHash = metadata.documentHash || metadata[3] || 'N/A'
+  const status = metadata.verificationStatus !== undefined ? Number(metadata.verificationStatus) : (metadata[4] !== undefined ? Number(metadata[4]) : 0)
 
   return (
     <div className="p-6 bg-white rounded-xl border-2 border-gray-200 hover:border-blue-300 hover:shadow-md transition-all">
