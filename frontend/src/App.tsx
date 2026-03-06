@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { WalletConnect } from './components/WalletConnect'
+import { MintAsset, MyAssets } from './components/RWAAssets'
 
 function App() {
   return (
@@ -80,7 +81,12 @@ function HomePage() {
 }
 
 function AssetsPage() {
-  return <div className="text-center py-12">Assets page coming soon...</div>
+  return (
+    <div className="grid md:grid-cols-2 gap-6">
+      <MintAsset />
+      <MyAssets />
+    </div>
+  )
 }
 
 function CreditPage() {
