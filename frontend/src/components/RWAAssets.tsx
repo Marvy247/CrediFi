@@ -113,66 +113,149 @@ export function MintAsset() {
 }
 
 export function MyAssets() {
-  const [tokenId, setTokenId] = useState('0')
+  const { address } = useAccount()
+  const [assets, setAssets] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
 
-  const { data: metadata, refetch } = useReadContract({
+  const loadAssets = async () => {
+    if (!address) return
+    
+    setLoading(true)
+    const loadedAssets = []
+    
+    // Try to load up to 20 assets (adjust based on expected usage)
+    for (let i = 0; i < 20; i++) {
+      try {
+        const response = await fetch(
+          `https://ethereum-sepolia-rpc.publicnode.com`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              jsonrpc: '2.0',
+              method: 'eth_call',
+              params: [{
+                to: contracts.rwaAsset,
+                data: `0x6352211e${i.toString(16).padStart(64, '0')}` // ownerOf(tokenId)
+              }, 'latest'],
+              id: 1
+            })
+          }
+        )
+        const data = await response.json()
+        
+        if (data.result && data.result !== '0x') {
+          const owner = '0x' + data.result.slice(-40)
+          if (owner.toLowerCase() === address.toLowerCase()) {
+            loadedAssets.push(i)
+          }
+        }
+      } catch (error) {
+        // Token doesn't exist, continue
+      }
+    }
+    
+    setAssets(loadedAssets)
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    loadAssets()
+  }, [address])
+
+  return (
+    <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">My Assets</h2>
+        <button
+          onClick={loadAssets}
+          disabled={loading}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-medium disabled:opacity-50"
+        >
+          {loading ? 'Loading...' : 'Refresh'}
+        </button>
+      </div>
+
+      {!address ? (
+        <div className="text-center py-12 text-gray-500">
+          <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          <p className="font-medium">Connect your wallet to view assets</p>
+        </div>
+      ) : loading ? (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="text-gray-500 mt-4">Loading your assets...</p>
+        </div>
+      ) : assets.length === 0 ? (
+        <div className="text-center py-12 text-gray-500">
+          <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+          </svg>
+          <p className="font-medium">No assets found</p>
+          <p className="text-sm mt-1">Mint your first asset to get started</p>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 gap-4">
+          {assets.map((tokenId) => (
+            <AssetCard key={tokenId} tokenId={tokenId} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function AssetCard({ tokenId }: { tokenId: number }) {
+  const { data: metadata } = useReadContract({
     address: contracts.rwaAsset,
     abi: RWAAssetABI,
     functionName: 'getAssetMetadata',
     args: [BigInt(tokenId)],
-  }) as { data: any, refetch: any }
+  }) as { data: any }
 
   const assetTypes = ['🏠 Land', '🌾 Crop', '🚗 Vehicle', '📦 Other']
   const verificationStatus = ['Pending', 'Verified', 'Rejected']
+  const statusColors = ['bg-yellow-100 text-yellow-700 border-yellow-200', 'bg-green-100 text-green-700 border-green-200', 'bg-red-100 text-red-700 border-red-200']
+
+  if (!metadata) {
+    return (
+      <div className="p-6 bg-gray-50 rounded-xl border border-gray-200 animate-pulse">
+        <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+      </div>
+    )
+  }
 
   return (
-    <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">My Assets</h2>
-      
-      <div className="mb-6 flex gap-2">
-        <input
-          type="number"
-          value={tokenId}
-          onChange={(e) => setTokenId(e.target.value)}
-          className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-gray-900"
-          placeholder="Enter Token ID"
-        />
-        <button
-          onClick={() => refetch()}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold"
-        >
-          View
-        </button>
-      </div>
-
-      {metadata && (
-        <div className="space-y-3">
-          <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-            <span className="text-gray-600 font-medium">Type</span>
-            <span className="text-gray-900 font-semibold">{assetTypes[Number(metadata[0])]}</span>
-          </div>
-          <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-            <span className="text-gray-600 font-medium">Location</span>
-            <span className="text-gray-900 font-semibold">{metadata[1]}</span>
-          </div>
-          <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-            <span className="text-gray-600 font-medium">Valuation</span>
-            <span className="text-gray-900 font-semibold">{(Number(metadata[2]) / 1e18).toFixed(2)} ETH</span>
-          </div>
-          <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-            <span className="text-gray-600 font-medium">Document</span>
-            <span className="font-mono text-sm text-gray-700 truncate max-w-xs">{metadata[3]}</span>
-          </div>
-          <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-            <span className="text-gray-600 font-medium">Status</span>
-            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-              metadata[4] === 1 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-            }`}>
-              {verificationStatus[Number(metadata[4])]}
-            </span>
-          </div>
+    <div className="p-6 bg-white rounded-xl border-2 border-gray-200 hover:border-blue-300 hover:shadow-md transition-all">
+      <div className="flex justify-between items-start mb-4">
+        <div>
+          <div className="text-2xl mb-1">{assetTypes[Number(metadata[0])]}</div>
+          <div className="text-xs text-gray-500 font-mono">Token ID: #{tokenId}</div>
         </div>
-      )}
+        <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${statusColors[Number(metadata[4])]}`}>
+          {verificationStatus[Number(metadata[4])]}
+        </span>
+      </div>
+      
+      <div className="space-y-3">
+        <div>
+          <div className="text-xs text-gray-500 mb-1">Location</div>
+          <div className="text-sm font-semibold text-gray-900">{metadata[1]}</div>
+        </div>
+        
+        <div>
+          <div className="text-xs text-gray-500 mb-1">Valuation</div>
+          <div className="text-lg font-bold text-blue-600">{(Number(metadata[2]) / 1e18).toFixed(2)} ETH</div>
+        </div>
+        
+        <div>
+          <div className="text-xs text-gray-500 mb-1">Document Hash</div>
+          <div className="text-xs font-mono text-gray-600 truncate">{metadata[3]}</div>
+        </div>
+      </div>
     </div>
   )
 }
