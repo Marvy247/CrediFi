@@ -271,8 +271,8 @@ export function BorrowRepay() {
   const maxBorrow = valuation ? (Number(valuation) * ltvRatio) / 100 / 1e18 : 0
 
   const borrowedAmount = loanData?.borrowedAmount || loanData?.[2] || 0
-  const accruedInterest = loanData?.accruedInterest || loanData?.[6] || 0
-  const totalRepayment = borrowedAmount && accruedInterest ? (Number(borrowedAmount) + Number(accruedInterest)) / 1e18 : 0
+  const accruedInterest = loanData?.accruedInterest !== undefined ? loanData.accruedInterest : (loanData?.[6] !== undefined ? loanData[6] : 0)
+  const totalRepayment = borrowedAmount ? (Number(borrowedAmount) + Number(accruedInterest)) / 1e18 : 0
 
   useEffect(() => {
     if (isApproveSuccess && collateralTokenId && borrowAmount) {
