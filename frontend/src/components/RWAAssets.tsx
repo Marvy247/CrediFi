@@ -208,52 +208,59 @@ export function MyAssets() {
 }
 
 function AssetCard({ tokenId }: { tokenId: number }) {
-  const { data: metadata } = useReadContract({
+  const { data: metadata, isLoading } = useReadContract({
     address: contracts.rwaAsset,
     abi: RWAAssetABI,
     functionName: 'getAssetMetadata',
     args: [BigInt(tokenId)],
-  }) as { data: any }
+  }) as { data: any, isLoading: boolean }
 
   const assetTypes = ['🏠 Land', '🌾 Crop', '🚗 Vehicle', '📦 Other']
   const verificationStatus = ['Pending', 'Verified', 'Rejected']
   const statusColors = ['bg-yellow-100 text-yellow-700 border-yellow-200', 'bg-green-100 text-green-700 border-green-200', 'bg-red-100 text-red-700 border-red-200']
 
-  if (!metadata) {
+  if (isLoading || !metadata) {
     return (
       <div className="p-6 bg-gray-50 rounded-xl border border-gray-200 animate-pulse">
-        <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+        <div className="h-6 bg-gray-200 rounded w-3/4 mb-3"></div>
+        <div className="h-4 bg-gray-200 rounded w-1/2 mb-3"></div>
+        <div className="h-4 bg-gray-200 rounded w-2/3"></div>
       </div>
     )
   }
+
+  const assetType = metadata[0] !== undefined ? Number(metadata[0]) : 0
+  const location = metadata[1] || 'Unknown'
+  const valuation = metadata[2] ? Number(metadata[2]) : 0
+  const documentHash = metadata[3] || 'N/A'
+  const status = metadata[4] !== undefined ? Number(metadata[4]) : 0
 
   return (
     <div className="p-6 bg-white rounded-xl border-2 border-gray-200 hover:border-blue-300 hover:shadow-md transition-all">
       <div className="flex justify-between items-start mb-4">
         <div>
-          <div className="text-2xl mb-1">{assetTypes[Number(metadata[0])]}</div>
+          <div className="text-2xl mb-1">{assetTypes[assetType]}</div>
           <div className="text-xs text-gray-500 font-mono">Token ID: #{tokenId}</div>
         </div>
-        <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${statusColors[Number(metadata[4])]}`}>
-          {verificationStatus[Number(metadata[4])]}
+        <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${statusColors[status]}`}>
+          {verificationStatus[status]}
         </span>
       </div>
       
       <div className="space-y-3">
         <div>
           <div className="text-xs text-gray-500 mb-1">Location</div>
-          <div className="text-sm font-semibold text-gray-900">{metadata[1]}</div>
+          <div className="text-sm font-semibold text-gray-900">{location}</div>
         </div>
         
         <div>
           <div className="text-xs text-gray-500 mb-1">Valuation</div>
-          <div className="text-lg font-bold text-blue-600">{(Number(metadata[2]) / 1e18).toFixed(2)} ETH</div>
+          <div className="text-lg font-bold text-blue-600">{(valuation / 1e18).toFixed(2)} ETH</div>
         </div>
         
         <div>
           <div className="text-xs text-gray-500 mb-1">Document Hash</div>
-          <div className="text-xs font-mono text-gray-600 truncate">{metadata[3]}</div>
+          <div className="text-xs font-mono text-gray-600 truncate">{documentHash}</div>
         </div>
       </div>
     </div>
