@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast'
 import { WalletConnect } from './components/WalletConnect'
 import { MintAsset, MyAssets } from './components/RWAAssets'
 import { CreditScoreDashboard } from './components/CreditScore'
+import { LendingPoolStats, DepositWithdraw, BorrowRepay } from './components/LendingPool'
 
 function App() {
   return (
@@ -95,7 +96,15 @@ function CreditPage() {
 }
 
 function LendingPage() {
-  return <div className="text-center py-12">Lending Pool page coming soon...</div>
+  return (
+    <div className="space-y-6">
+      <LendingPoolStats />
+      <div className="grid md:grid-cols-2 gap-6">
+        <DepositWithdraw />
+        <BorrowRepay />
+      </div>
+    </div>
+  )
 }
 
 export default App
