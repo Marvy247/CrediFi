@@ -243,17 +243,27 @@ export function BorrowRepay() {
   const { isLoading: isRepayConfirming, isSuccess: isRepaySuccess } = useWaitForTransactionReceipt({ hash: repayHash })
 
   // Check pool liquidity
-  const { data: totalLiquidity } = useReadContract({
+  const { data: totalLiquidity, refetch: refetchLiquidity } = useReadContract({
     address: contracts.lendingPool,
     abi: LendingPoolABI,
     functionName: 'totalLiquidity',
-  }) as { data: any }
+  }) as { data: any, refetch: any }
 
-  const { data: totalBorrowed } = useReadContract({
+  const { data: totalBorrowed, refetch: refetchBorrowed } = useReadContract({
     address: contracts.lendingPool,
     abi: LendingPoolABI,
     functionName: 'totalBorrowed',
-  }) as { data: any }
+  }) as { data: any, refetch: any }
+
+  const refetchPoolData = () => {
+    refetchLiquidity()
+    refetchBorrowed()
+  }
+
+  useEffect(() => {
+    const interval = setInterval(refetchPoolData, 3000)
+    return () => clearInterval(interval)
+  }, [])
 
   // Check asset metadata and credit score for validation
   const { data: assetMetadata } = useReadContract({
